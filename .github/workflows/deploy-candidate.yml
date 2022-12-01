@@ -70,7 +70,7 @@ jobs:
           workflow: build.yml
           workflow_conclusion: success
           name: background-service_${{ env.MANUAL_PROJECT_1_VERSION }}
-          path: ./background-service
+          path: background-service
           repo: rexdefuror/manual-project-1
           search_artifacts: true
           if_no_artifact_found: fail
@@ -85,7 +85,7 @@ jobs:
           workflow: build.yml
           workflow_conclusion: success
           name: api-service_${{ env.MANUAL_PROJECT_2_VERSION }}
-          path: ./api-service
+          path: api-service
           repo: rexdefuror/manual-project-2
           search_artifacts: true
           if_no_artifact_found: fail
@@ -100,7 +100,7 @@ jobs:
           workflow: build.yml
           workflow_conclusion: success
           name: web-app_${{ env.MANUAL_PROJECT_3_VERSION }}
-          path: ./web-app
+          path: web-app
           repo: rexdefuror/manual-project-3
           search_artifacts: true
           if_no_artifact_found: fail
