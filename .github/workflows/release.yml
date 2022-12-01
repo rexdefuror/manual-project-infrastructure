@@ -69,7 +69,6 @@ jobs:
         if: ${{ github.event.inputs.manual-project-3 == 'true' }}
         run: echo "MANUAL_PROJECT_3_VERSION=${{ env.LATEST_TAG }}" >> $GITHUB_ENV
 
-      ## Generate a release candidate json file that contains the versions of the projects and whether they will be included in the release
       - name: Create a release candidate
         if: (github.event.inputs.manual-project-1 == 'true' || github.event.inputs.manual-project-2 == 'true' || github.event.inputs.manual-project-3 == 'true')
         uses: actions/github-script@v6
