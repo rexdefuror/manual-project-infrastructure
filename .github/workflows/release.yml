@@ -80,18 +80,18 @@ jobs:
             const releaseCandidate = {
               manualProject1: {
                 include: ${{ github.event.inputs.manual-project-1 }},
-                version: process.env.MANUAL_PROJECT_1_VERSION
+                version: ${{ env.MANUAL_PROJECT_1_VERSION }}
               },
               manualProject2: {
                 include: ${{ github.event.inputs.manual-project-2 }},
-                version: process.env.MANUAL_PROJECT_2_VERSION
+                version: ${{ env.MANUAL_PROJECT_2_VERSION }}
               },
               manualProject3: {
                 include: ${{ github.event.inputs.manual-project-3 }},
-                version: process.env.MANUAL_PROJECT_3_VERSION
+                version: ${{ env.MANUAL_PROJECT_3_VERSION }}
               }
             };
-            fs.writeFileSync(path.join(process.env.GITHUB_WORKSPACE, 'release-candidate.json'), JSON.stringify(releaseCandidate, null, 2));
+            fs.writeFileSync(path.join(${{ env.GITHUB_WORKSPACE }}, 'release-candidate.json'), JSON.stringify(releaseCandidate, null, 2));
       - name: Upload release candidate artifact
         if: (github.event.inputs.manual-project-1 == 'true' || github.event.inputs.manual-project-2 == 'true' || github.event.inputs.manual-project-3 == 'true')
         uses: actions/upload-artifact@v3
