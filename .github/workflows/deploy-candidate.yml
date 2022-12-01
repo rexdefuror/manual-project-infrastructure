@@ -69,7 +69,7 @@ jobs:
           github_token: ${{secrets.GITHUB_TOKEN}}
           workflow: build.yml
           workflow_conclusion: success
-          name: background-service_${{ env.MANUAL_PROJECT_1_VERSION }}
+          name: background-service_${{ env.MANUAL_PROJECT_1_VERSION }}.zip
           path: ./background-service
           repo: rexdefuror/manual-project-1
           search_artifacts: true
@@ -84,7 +84,7 @@ jobs:
           github_token: ${{secrets.GITHUB_TOKEN}}
           workflow: build.yml
           workflow_conclusion: success
-          name: api-service_${{ env.MANUAL_PROJECT_2_VERSION }}
+          name: api-service_${{ env.MANUAL_PROJECT_2_VERSION }}.zip
           path: ./api-service
           repo: rexdefuror/manual-project-2
           search_artifacts: true
@@ -99,7 +99,7 @@ jobs:
           github_token: ${{secrets.GITHUB_TOKEN}}
           workflow: build.yml
           workflow_conclusion: success
-          name: web-app_${{ env.MANUAL_PROJECT_3_VERSION }}
+          name: web-app_${{ env.MANUAL_PROJECT_3_VERSION }}.zip
           path: ./web-app
           repo: rexdefuror/manual-project-3
           search_artifacts: true
