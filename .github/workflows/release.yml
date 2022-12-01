@@ -1,0 +1,100 @@
+name: Release Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      manual-project-1:
+        description: "Include manual-project-1?"
+        required: true
+        type: boolean
+        default: false
+      manual-project-1-version:
+        description: "Version to release for manual-project-1"
+        required: true
+        default: "latest"
+      manual-project-2:
+        description: "Include manual-project-2?"
+        required: true
+        type: boolean
+        default: false
+      manual-project-2-version:
+        description: "Version to release for manual-project-2"
+        required: true
+        default: "latest"
+      manual-project-3:
+        description: "Include manual-project-3?"
+        required: true
+        type: boolean
+        default: false
+      manual-project-3-version:
+        description: "Version to release for manual-project-3"
+        required: true
+        default: "latest"
+
+jobs:
+  create-a-release:
+    name: Create a release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Get latest tag for manual-project-1
+        if: ${{ github.event.inputs.manual-project-1 == 'true' }}
+        uses: rexdefuror/get-latest-tag@v1.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          owner: "rexdefuror"
+          repo: "manual-project-1"
+      - name: Set manual-project-1 version
+        if: ${{ github.event.inputs.manual-project-1 == 'true' }}
+        run: echo "MANUAL_PROJECT_1_VERSION=${{ env.LATEST_TAG }}" >> $GITHUB_ENV
+      - name: Get latest tag for manual-project-2
+        if: ${{ github.event.inputs.manual-project-2 == 'true' }}
+        uses: rexdefuror/get-latest-tag@v1.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          owner: "rexdefuror"
+          repo: "manual-project-2"
+      - name: Set manual-project-2 version
+        if: ${{ github.event.inputs.manual-project-2 == 'true' }}
+        run: echo "MANUAL_PROJECT_2_VERSION=${{ env.LATEST_TAG }}" >> $GITHUB_ENV
+      - name: Get latest tag for manual-project-3
+        if: ${{ github.event.inputs.manual-project-3 == 'true' }}
+        uses: rexdefuror/get-latest-tag@v1.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          owner: "rexdefuror"
+          repo: "manual-project-3"
+      - name: Set manual-project-3 version
+        if: ${{ github.event.inputs.manual-project-3 == 'true' }}
+        run: echo "MANUAL_PROJECT_3_VERSION=${{ env.LATEST_TAG }}" >> $GITHUB_ENV
+
+      ## Generate a release candidate json file that contains the versions of the projects and whether they will be included in the release
+      - name: Create a release candidate
+        if: (github.event.inputs.manual-project-1 == 'true' || github.event.inputs.manual-project-2 == 'true' || github.event.inputs.manual-project-3 == 'true')
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const releaseCandidate = {
+              manualProject1: {
+                include: ${{ github.event.inputs.manual-project-1 }},
+                version: process.env.MANUAL_PROJECT_1_VERSION
+              },
+              manualProject2: {
+                include: ${{ github.event.inputs.manual-project-2 }},
+                version: process.env.MANUAL_PROJECT_2_VERSION
+              },
+              manualProject3: {
+                include: ${{ github.event.inputs.manual-project-3 }},
+                version: process.env.MANUAL_PROJECT_3_VERSION
+              }
+            };
+            fs.writeFileSync(path.join(process.env.GITHUB_WORKSPACE, 'release-candidate.json'), JSON.stringify(releaseCandidate, null, 2));
+      - name: Upload release candidate artifact
+        if: (github.event.inputs.manual-project-1 == 'true' || github.event.inputs.manual-project-2 == 'true' || github.event.inputs.manual-project-3 == 'true')
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-candidate-${{ github.run_number }}
+          path: release-candidate.json

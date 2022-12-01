@@ -1,0 +1,164 @@
+name: Deploy Release candidate
+
+## Start the pipeline manually by entering a release candidate version to deploy.
+## This version is the run number of the release candidate workflow.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to deploy"
+        required: true
+        default: "latest"
+      environment:
+        type: choice
+        description: "Environment to deploy to"
+        required: true
+        options:
+          - "dev"
+          - "qa"
+          - "staging"
+          - "prod"
+
+env:
+  RC_RUN_NUMBER: ${{ github.event.inputs.rc-run-number }}
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get latest release candidate version
+        if: ${{ github.event.inputs.version == 'latest' }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: { workflow_runs: [latestRun] } } = await github.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'release.yml',
+              branch: 'main',
+              status: 'success',
+              per_page: 1
+            })
+            core.exportVariable('RC_RUN_NUMBER', latestRun.run_number)
+      - name: Download release candidate artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: release.yml
+          run_number: ${{ env.RC_RUN_NUMBER }}
+          name: release-candidate-${{ env.RC_RUN_NUMBER }}
+          path: ./release-candidate-${{ env.RC_RUN_NUMBER }}
+      - name: Parse release-candidate.json
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const releaseCandidate = JSON.parse(fs.readFileSync('./release-candidate-${{ env.RC_RUN_NUMBER }}/release-candidate.json', 'utf8'));
+            core.exportVariable('MANUAL_PROJECT_1', releaseCandidate.manualProject1.include);
+            core.exportVariable('MANUAL_PROJECT_1_VERSION', releaseCandidate.manualProject1.version);
+            core.exportVariable('MANUAL_PROJECT_2', releaseCandidate.manualProject2.include);
+            core.exportVariable('MANUAL_PROJECT_2_VERSION', releaseCandidate.manualProject2.version);
+            core.exportVariable('MANUAL_PROJECT_3', releaseCandidate.manualProject3.include);
+            core.exportVariable('MANUAL_PROJECT_3_VERSION', releaseCandidate.manualProject3.version);
+      - name: Get manual-project-1 artifact
+        if: ${{ env.MANUAL_PROJECT_1 == 'true' }}
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          workflow: build.yml
+          workflow_conclusion: success
+          name: background-service_v${{ env.MANUAL_PROJECT_1_VERSION }}
+          path: ./background-service
+          repo: rexdefuror/manual-project-1
+          search_artifacts: true
+          if_no_artifact_found: fail
+      - name: manual-project-1 artifact path
+        if: ${{ env.MANUAL_PROJECT_1 == 'true' }}
+        run: echo "MANUAL_PROJECT_1_ARTIFACT_PATH='background-service'" >> $GITHUB_ENV
+      - name: Get manual-project-2 artifact
+        if: ${{ env.MANUAL_PROJECT_2 == 'true' }}
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          workflow: build.yml
+          workflow_conclusion: success
+          name: api-service_v${{ env.MANUAL_PROJECT_2_VERSION }}
+          path: ./api-service
+          repo: rexdefuror/manual-project-2
+          search_artifacts: true
+          if_no_artifact_found: fail
+      - name: manual-project-2 artifact path
+        if: ${{ env.MANUAL_PROJECT_2 == 'true' }}
+        run: echo "MANUAL_PROJECT_2_ARTIFACT_PATH='api-service'" >> $GITHUB_ENV
+      - name: Get manual-project-3 artifact
+        if: ${{ env.MANUAL_PROJECT_3 == 'true' }}
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          workflow: build.yml
+          workflow_conclusion: success
+          name: web-app_v${{ env.MANUAL_PROJECT_3_VERSION }}
+          path: ./web-app
+          repo: rexdefuror/manual-project-3
+          search_artifacts: true
+          if_no_artifact_found: fail
+      - name: manual-project-3 artifact path
+        if: ${{ env.MANUAL_PROJECT_3 == 'true' }}
+        run: echo "MANUAL_PROJECT_3_ARTIFACT_PATH='web-app'" >> $GITHUB_ENV
+      - name: Deploy to ${{ github.event.inputs.environment }}
+        run: |
+          echo "Deploying to ${{ github.event.inputs.environment }}"
+          echo "MANUAL_PROJECT_1: ${{ env.MANUAL_PROJECT_1 }}"
+          echo "MANUAL_PROJECT_1_VERSION: ${{ env.MANUAL_PROJECT_1_VERSION }}"
+          echo "MANUAL_PROJECT_1_ARTIFACT_PATH: ${{ env.MANUAL_PROJECT_1_ARTIFACT_PATH }}"
+          echo "MANUAL_PROJECT_2: ${{ env.MANUAL_PROJECT_2 }}"
+          echo "MANUAL_PROJECT_2_VERSION: ${{ env.MANUAL_PROJECT_2_VERSION }}"
+          echo "MANUAL_PROJECT_2_ARTIFACT_PATH: ${{ env.MANUAL_PROJECT_2_ARTIFACT_PATH }}"
+          echo "MANUAL_PROJECT_3: ${{ env.MANUAL_PROJECT_3 }}"
+          echo "MANUAL_PROJECT_3_VERSION: ${{ env.MANUAL_PROJECT_3_VERSION }}"
+          echo "MANUAL_PROJECT_3_ARTIFACT_PATH: ${{ env.MANUAL_PROJECT_3_ARTIFACT_PATH }}"
+          echo "RC_RUN_NUMBER: ${{ env.RC_RUN_NUMBER }}"
+      - name: Create release for all included projects
+        if: github.event.inputs.environment == 'prod'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const releaseCandidate = JSON.parse(fs.readFileSync('./release-candidate-${{ env.RC_RUN_NUMBER }}/release-candidate.json', 'utf8'));
+
+            if (releaseCandidate.manualProject1.include == 'true') {
+              await github.repos.createRelease({
+                owner: 'rexdefuror',
+                repo: 'manual-project-1',
+                tag_name: 'v' + releaseCandidate.manualProject1.version,
+                name: 'v' + releaseCandidate.manualProject1.version,
+                body: 'Release v' + releaseCandidate.manualProject1.version,
+                draft: false,
+                prerelease: false
+              });
+            }
+
+            if (releaseCandidate.manualProject2.include == 'true') {
+              await github.repos.createRelease({
+                owner: 'rexdefuror',
+                repo: 'manual-project-2',
+                tag_name: 'v' + releaseCandidate.manualProject2.version,
+                name: 'v' + releaseCandidate.manualProject2.version,
+                body: 'Release v' + releaseCandidate.manualProject2.version,
+                draft: false,
+                prerelease: false
+              });
+            }
+
+            if (releaseCandidate.manualProject3.include == 'true') {
+              await github.repos.createRelease({
+                owner: 'rexdefuror',
+                repo: 'manual-project-3',
+                tag_name: 'v' + releaseCandidate.manualProject3.version,
+                name: 'v' + releaseCandidate.manualProject3.version,
+                body: 'Release v' + releaseCandidate.manualProject3.version,
+                draft: false,
+                prerelease: false
+              });
+            }
