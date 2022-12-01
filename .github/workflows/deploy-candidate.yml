@@ -62,7 +62,8 @@ jobs:
             core.exportVariable('MANUAL_PROJECT_2_VERSION', releaseCandidate.manualProject2.version);
             core.exportVariable('MANUAL_PROJECT_3', releaseCandidate.manualProject3.include);
             core.exportVariable('MANUAL_PROJECT_3_VERSION', releaseCandidate.manualProject3.version);
-      - name: Get manual-project-1 artifact
+      - name: Get manual-project-1 artifact'
+        id: manual-project-1
         if: ${{ env.MANUAL_PROJECT_1 == 'true' }}
         uses: dawidd6/action-download-artifact@v2
         with:
