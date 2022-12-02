@@ -1,5 +1,5 @@
 name: Deploy Release candidate
-run-name: Deploy to ${{ github.event.inputs.environment }}
+run-name: Deploy to ${{ github.event.inputs.environment }} - ${{ github.event.inputs.version }}
 
 ## Start the pipeline manually by entering a release candidate version to deploy.
 ## This version is the run number of the release candidate workflow.
