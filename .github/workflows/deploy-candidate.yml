@@ -62,7 +62,7 @@ jobs:
             core.exportVariable('MANUAL_PROJECT_2_VERSION', releaseCandidate.manualProject2.version);
             core.exportVariable('MANUAL_PROJECT_3', releaseCandidate.manualProject3.include);
             core.exportVariable('MANUAL_PROJECT_3_VERSION', releaseCandidate.manualProject3.version);
-      - name: Get manual-project-1 artifact'
+      - name: Get manual-project-1 artifact
         id: manual-project-1
         if: ${{ env.MANUAL_PROJECT_1 == 'true' }}
         uses: dawidd6/action-download-artifact@v2
@@ -71,13 +71,13 @@ jobs:
           workflow: build.yml
           workflow_conclusion: success
           name: background-service_${{ env.MANUAL_PROJECT_1_VERSION }}
-          path: background-service
+          path: manual-project-1
           repo: rexdefuror/manual-project-1
           search_artifacts: true
           if_no_artifact_found: fail
       - name: manual-project-1 artifact path
         if: ${{ env.MANUAL_PROJECT_1 == 'true' }}
-        run: echo "MANUAL_PROJECT_1_ARTIFACT_PATH='background-service'" >> $GITHUB_ENV
+        run: echo "MANUAL_PROJECT_1_ARTIFACT_PATH='manual-project-1'" >> $GITHUB_ENV
       - name: Get manual-project-2 artifact
         if: ${{ env.MANUAL_PROJECT_2 == 'true' }}
         uses: dawidd6/action-download-artifact@v2
