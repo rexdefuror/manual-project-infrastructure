@@ -1,5 +1,5 @@
 name: Deploy Release candidate
-run-name: Deploy to ${{ github.event.inputs.environment }} - ${{ github.event.inputs.version }}
+run-name: Deploy to ${{ github.event.inputs.environment }}
 
 ## Start the pipeline manually by entering a release candidate version to deploy.
 ## This version is the run number of the release candidate workflow.
@@ -62,27 +62,30 @@ jobs:
             core.exportVariable('MANUAL_PROJECT_2_VERSION', releaseCandidate.manualProject2.version);
             core.exportVariable('MANUAL_PROJECT_3', releaseCandidate.manualProject3.include);
             core.exportVariable('MANUAL_PROJECT_3_VERSION', releaseCandidate.manualProject3.version);
-      - name: Get manual-project-1 artifact
+
+      - name: Get manual-project-1 artifact'
         id: manual-project-1
         if: ${{ env.MANUAL_PROJECT_1 == 'true' }}
         uses: dawidd6/action-download-artifact@v2
         with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
+          github_token: ${{secrets.ARTIFACT_ACCESS}}
           workflow: build.yml
           workflow_conclusion: success
           name: background-service_${{ env.MANUAL_PROJECT_1_VERSION }}
-          path: manual-project-1
+          path: background-service
           repo: rexdefuror/manual-project-1
           search_artifacts: true
           if_no_artifact_found: fail
+
       - name: manual-project-1 artifact path
         if: ${{ env.MANUAL_PROJECT_1 == 'true' }}
-        run: echo "MANUAL_PROJECT_1_ARTIFACT_PATH='manual-project-1'" >> $GITHUB_ENV
+        run: echo "MANUAL_PROJECT_1_ARTIFACT_PATH='background-service'" >> $GITHUB_ENV
+
       - name: Get manual-project-2 artifact
         if: ${{ env.MANUAL_PROJECT_2 == 'true' }}
         uses: dawidd6/action-download-artifact@v2
         with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
+          github_token: ${{secrets.ARTIFACT_ACCESS}}
           workflow: build.yml
           workflow_conclusion: success
           name: api-service_${{ env.MANUAL_PROJECT_2_VERSION }}
@@ -90,14 +93,16 @@ jobs:
           repo: rexdefuror/manual-project-2
           search_artifacts: true
           if_no_artifact_found: fail
+
       - name: manual-project-2 artifact path
         if: ${{ env.MANUAL_PROJECT_2 == 'true' }}
         run: echo "MANUAL_PROJECT_2_ARTIFACT_PATH='api-service'" >> $GITHUB_ENV
+
       - name: Get manual-project-3 artifact
         if: ${{ env.MANUAL_PROJECT_3 == 'true' }}
         uses: dawidd6/action-download-artifact@v2
         with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
+          github_token: ${{secrets.ARTIFACT_ACCESS}}
           workflow: build.yml
           workflow_conclusion: success
           name: web-app_${{ env.MANUAL_PROJECT_3_VERSION }}
@@ -105,9 +110,11 @@ jobs:
           repo: rexdefuror/manual-project-3
           search_artifacts: true
           if_no_artifact_found: fail
+
       - name: manual-project-3 artifact path
         if: ${{ env.MANUAL_PROJECT_3 == 'true' }}
         run: echo "MANUAL_PROJECT_3_ARTIFACT_PATH='web-app'" >> $GITHUB_ENV
+          
       - name: Deploy to ${{ github.event.inputs.environment }}
         run: |
           echo "Deploying to ${{ github.event.inputs.environment }}"
