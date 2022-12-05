@@ -75,6 +75,7 @@ jobs:
           path: background-service
           repo: rexdefuror/manual-project-1
           search_artifacts: true
+          check_artifacts: true
           if_no_artifact_found: fail
 
       - name: manual-project-1 artifact path
