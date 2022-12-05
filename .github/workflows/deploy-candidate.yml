@@ -61,9 +61,9 @@ jobs:
             core.exportVariable('MANUAL_PROJECT_2', releaseCandidate.manualProject2.include);
             core.exportVariable('MANUAL_PROJECT_2_VERSION', releaseCandidate.manualProject2.version);
             core.exportVariable('MANUAL_PROJECT_3', releaseCandidate.manualProject3.include);
-            core.exportVariable('MANUAL_PROJECT_3_VERSION', releaseCandidate.manualProject3.version);
+            core.exportVariable('MANUAL_PROJECT_3_VERSION', releaseCandidate.manualProject3.version);      
 
-      - name: Get manual-project-1 artifact'
+      - name: Get manual-project-1 artifact
         id: manual-project-1
         if: ${{ env.MANUAL_PROJECT_1 == 'true' }}
         uses: dawidd6/action-download-artifact@v2
@@ -71,11 +71,10 @@ jobs:
           github_token: ${{secrets.ARTIFACT_ACCESS}}
           workflow: build.yml
           workflow_conclusion: success
-          name: background-service_${{ env.MANUAL_PROJECT_1_VERSION }}
-          path: background-service
-          repo: rexdefuror/manual-project-1
+          name: cicd-project-1_v${{ env.cicd-project-1-version }}
+          path: cicd-project-1
+          repo: rexdefuror/cicd-project-1
           search_artifacts: true
-          check_artifacts: true
           if_no_artifact_found: fail
 
       - name: manual-project-1 artifact path
