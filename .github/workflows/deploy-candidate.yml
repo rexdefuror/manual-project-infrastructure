@@ -71,9 +71,9 @@ jobs:
           github_token: ${{secrets.ARTIFACT_ACCESS}}
           workflow: build.yml
           workflow_conclusion: success
-          name: cicd-project-1_v${{ env.cicd-project-1-version }}
-          path: cicd-project-1
-          repo: rexdefuror/cicd-project-1
+          name: background-service_${{ env.MANUAL_PROJECT_1_VERSION }}
+          path: background-service
+          repo: rexdefuror/manual-project-1
           search_artifacts: true
           if_no_artifact_found: fail
 
